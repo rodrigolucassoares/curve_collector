@@ -120,6 +120,45 @@ class model {
             }//when implementation of shift key is done insert else{if(shiftkey){curve.setSelected(false)}}
         });
     }
+
+    intersectTwoCurves(){
+        if (this.curves.length < 1) {
+            return
+        }
+
+        var id_target12 = -1;
+        var id_target34 = -1;
+
+        for (let i = 0; i < this.curves.length; i++) {
+            if (this.curves[i].isSelected()) {
+                if (id_target12 === -1) {
+                    id_target12 = i;
+                } else if (id_target34 === -1)
+                {
+                    id_target34 = i;
+                } else 
+                {
+                    alert("More than two lines are selected \n" +
+                    "Please be sure that only two curves are selected");
+                    //return false;
+                }
+            }            
+        }
+
+        if (i_target34 === -1) {
+            alert("Exactly two lines are selected \n" +
+            "Please be sure that only two curves are selected");
+            //return false;
+        }
+
+        //Get lines' points
+        var pts12 = this.curves[i_target12].getPoints();
+        var pts34 = this.curves[i_target34].getPoints();
+        var pt1 = pts12[0];
+        var pt2 = pts12[1];
+        var pt3 = pts34[0];
+        var pt4 = pts34[1];
+    }
 }
 
 export default model;

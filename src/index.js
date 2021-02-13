@@ -25,15 +25,15 @@ document.getElementById('canvas').style.cursor = "crosshair";
 
 //configuring gui options bar
 const guiOptions = {
-  pan: ()=>{
+  Pan: ()=>{
     document.getElementById('canvas').style.cursor = "move";
     cnv.setMouseAction(GLCanvas.PAN);
   },
-  selection: ()=>{
+  Selection: ()=>{
     document.getElementById('canvas').style.cursor = "auto";
     cnv.setMouseAction(GLCanvas.SELECTION);
   },
-  line: ()=>{
+  Line: ()=>{
     document.getElementById('canvas').style.cursor = "crosshair";
     cnv.setMouseAction(GLCanvas.COLLECTION);
     cnv.setCurveType(CurveTypes.LINE);
@@ -41,13 +41,16 @@ const guiOptions = {
   Grid: ()=>{
     cnv.gridHelperOnOff();
   },
+  Intersect: ()=>{
+    cnv.model.intersectTwoCurves();
+  }
 }
 
 const gui = new dat.GUI({name: 'My GUI'});
-gui.add(guiOptions, 'pan');
-gui.add(guiOptions, 'selection');
+gui.add(guiOptions, 'Pan');
+gui.add(guiOptions, 'Selection');
 const curvesFolder = gui.addFolder('Curves');
-curvesFolder.add(guiOptions, 'line');
+curvesFolder.add(guiOptions, 'Line');
 /*curvesFolder.add(guiOptions, 'polyline');
 curvesFolder.add(guiOptions, 'circle');
 curvesFolder.add(guiOptions, 'arc');
@@ -55,7 +58,8 @@ curvesFolder.add(guiOptions, 'cubicbezier');
 curvesFolder.add(guiOptions, 'quadbezier'); */
 
 curvesFolder.close();
-gui.add(guiOptions, 'Grid')
+gui.add(guiOptions, 'Grid');
+gui.add(guiOptions, 'Intersect');
 
 //curvesFolder.add(this.curveTypes, 'line');
 //curvesFolder.add(this.curveTypes, 'polyline');
