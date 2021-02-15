@@ -13,6 +13,8 @@ This is a web project to create curves, regions and mesh generation to aid the m
 
 ### `Have npm installed`
 
+more information on: https://www.npmjs.com/get-npm
+
 ### `git clone https://github.com/rodrigolucassoares/curve_collector.git`
 
 ### `go to the project folder`
