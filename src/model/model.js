@@ -1,3 +1,5 @@
+import {computeSegmentSegmentIntersection} from '../compgeom/compgeom'
+
 class model {
     constructor(){
         this.curves = [];
@@ -145,19 +147,27 @@ class model {
             }            
         }
 
-        if (i_target34 === -1) {
+        if (id_target34 === -1) {
             alert("Exactly two lines are selected \n" +
             "Please be sure that only two curves are selected");
             //return false;
         }
 
         //Get lines' points
-        var pts12 = this.curves[i_target12].getPoints();
-        var pts34 = this.curves[i_target34].getPoints();
+        var pts12 = this.curves[id_target12].getPoints();
+        var pts34 = this.curves[id_target34].getPoints();
         var pt1 = pts12[0];
         var pt2 = pts12[1];
         var pt3 = pts34[0];
         var pt4 = pts34[1];
+
+        //Compute intersection between two lines
+        var pi;
+        var ti_12 = 0.0;
+        var ti_34 = 0.0;
+
+        var status = computeSegmentSegmentIntersection({p1: pt1, p2: pt2, p3: pt3, p4: pt4});
+        console.log(status);
     }
 }
 
