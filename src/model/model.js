@@ -166,7 +166,9 @@ class model {
         var ti_12 = 0.0;
         var ti_34 = 0.0;
 
-        var status = computeSegmentSegmentIntersection({p1: pt1, p2: pt2, p3: pt3, p4: pt4});
+        var ref_obj = {p1: pt1, p2: pt2, p3: pt3, p4: pt4, pi: pi, t12: ti_12, t34: ti_34};
+
+        var status = computeSegmentSegmentIntersection(ref_obj);
         console.log(status);
     }
 }

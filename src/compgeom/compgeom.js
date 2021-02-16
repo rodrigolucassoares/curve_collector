@@ -13,6 +13,21 @@ export const SIGN = {
 
 const ABSTOL = 1e-7;
 
+function area2d(p1,p2,p3){
+    var A = {
+        x: p2.x - p1.x,
+        y: p2.y - p1.x
+    },
+    B = {
+        x: p3.x - p1.x,
+        y: p3.y - p1.x
+    }
+
+    //crossproduct
+
+    return (A.x*B.y - B.x*A.y);
+}
+
 function orientation(p1, p2, p3){
     var val = (p2.y - p1.y)*(p3.x - p2.x) - 
                 (p2.x - p1.x)*(p3.y - p2.y);
@@ -60,4 +75,50 @@ export function computeSegmentSegmentIntersection(params) {
     if (sign123 === SIGN.ZERO && sign124 === SIGN.ZERO) {
         return IntersectionType.COLLINEAR;
     }
+
+    //check if second segment is on the same side of first segment
+
+    if (orientation(params.p1, params.p2, params.p3) === SIGN.POSITIVE && 
+        orientation(params.p1, params.p2, params.p4) === SIGN.POSITIVE) 
+    {
+        console.log('a')
+        return IntersectionType.DO_NOT_INTERSECT;
+    }
+    else if (orientation(params.p1, params.p2, params.p3) === SIGN.NEGATIVE && 
+        orientation(params.p1, params.p2, params.p4) === SIGN.NEGATIVE) 
+    {
+        console.log('b')
+        return IntersectionType.DO_NOT_INTERSECT;
+    }
+
+    //checks for first segment on the same side of second segment
+
+    if (orientation(params.p3, params.p4, params.p1) === SIGN.POSITIVE && 
+        orientation(params.p3, params.p4, params.p2) === SIGN.POSITIVE) 
+    {
+        console.log('c')
+        return IntersectionType.DO_NOT_INTERSECT;
+    }
+    else if (orientation(params.p3, params.p4, params.p1) === SIGN.NEGATIVE && 
+        orientation(params.p3, params.p4, params.p2) === SIGN.NEGATIVE) 
+    {
+        console.log('d')
+        return IntersectionType.DO_NOT_INTERSECT;
+    }
+
+    //treat the touch cases
+
+    params.t34 = area2d(params.p1,params.p2,params.p3)/(area2d(params.p1,params.p2,params.p3) - area2d(params.p1,params.p2,params.p4));
+
+    var v34 = {
+        x: params.p4.x - params.p3.x,
+        y: params.p4.y - params.p3.y
+    }
+
+    params.pi = {
+        x: params.p3.x + params.t34*v34.x,
+        y: params.p3.y + params.t34*v34.y
+    }
+
+    return IntersectionType.DO_INTERSECT;
 }
