@@ -26,3 +26,7 @@ Install the dependecies
 ## `npm start`
 
 Start local development server
+
+## Running on
+
+https://curve-collector.herokuapp.com/
