@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import * as dat from 'dat.gui'
 import collector from '../curves/curveCollector'
-import control from '../control/control'
 import curve from '../curves/curve'
 import model from '../model/model'
 import {GLCanvas} from './GLCanvas'
@@ -10,9 +9,7 @@ import { DoubleSide } from 'three'
 
 
 class canvas {
-    constructor(control){
-        //handle control
-        this.control = control;
+    constructor(){
         //create canvas
         this.canvas = document.getElementById( 'canvas' );
         this.width = window.innerWidth;
@@ -360,6 +357,7 @@ class canvas {
 
     grid(){
         this.gridHelper = new THREE.GridHelper((this.width > this.height) ? this.width : this.height, 100);
+        this.gridHelper.position.z = -0.001;
         this.gridHelper.geometry.rotateX( Math.PI / 2 );
         var vector = new THREE.Vector3( 0, 0, 1 );
         this.gridHelper.lookAt( vector );
