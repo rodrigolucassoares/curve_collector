@@ -1,28 +1,32 @@
-# Curve Collector
+# Curve - Collector
 
 This is a web project to create curves, regions and mesh generation to aid the modeling task for fem analysis.
 
-## Libraries
+## Libraries 
 
+## `ThreeJS`
 
-### `ThreeJS`
-
-### `dat.gui`
+## `dat.gui`
 
 ## How to clone this repo
 
-### `Have npm installed`
 
-more information on: https://www.npmjs.com/get-npm
+## `Have npm installed`
 
-### `git clone https://github.com/rodrigolucassoares/curve_collector.git`
+More information on: https://www.npmjs.com/get-npm
 
-### `go to the project folder`
+## `git clone https://github.com/rodrigolucassoares/curve_collector.git`
 
-### `npm install`
+## `go to the project folder`
+
+## `npm install`
 
 Install the dependecies
 
-### `npm start`
+## `npm start`
 
-start local development server
+Start local development server
+
+## Running on
+
+https://curve-collector.herokuapp.com/

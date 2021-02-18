@@ -13,6 +13,10 @@
     "three": "^0.125.2",
     "web-vitals": "^0.2.4"
   },
+  "engines": {
+    "npm": "6.14.9"
+  },
+  "homepage": "https://curve-collector.herokuapp.com/",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
