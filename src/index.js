@@ -4,7 +4,6 @@ import './index.css';
 import * as dat from 'dat.gui'
 import App from './App';
 import canvas from './canvas/canvas'
-import control from './control/control'
 import { GLCanvas } from './canvas/GLCanvas';
 import { CurveTypes } from './curves/CurveTypes';
 
@@ -15,8 +14,7 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-const ctrl = new control();
-const cnv = new canvas(ctrl);
+const cnv = new canvas();
 cnv.grid();
 cnv.render();
 
@@ -43,6 +41,7 @@ const guiOptions = {
   },
   Intersect: ()=>{
     cnv.model.intersectTwoCurves();
+    cnv.render();
   }
 }
 

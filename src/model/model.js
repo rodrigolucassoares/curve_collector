@@ -1,4 +1,5 @@
-import {computeSegmentSegmentIntersection} from '../compgeom/compgeom'
+import {computeSegmentSegmentIntersection, IntersectionType} from '../compgeom/compgeom'
+import line from '../curves/line'
 
 class model {
     constructor(){
@@ -142,15 +143,21 @@ class model {
                 {
                     alert("More than two lines are selected \n" +
                     "Please be sure that only two curves are selected");
-                    //return false;
+                    return;
                 }
             }            
         }
 
+        if (id_target12 === -1) {
+            alert("There aren't any lines selected \n" +
+            "Please be sure that two curves are selected");
+            return;
+        }
+
         if (id_target34 === -1) {
-            alert("Exactly two lines are selected \n" +
-            "Please be sure that only two curves are selected");
-            //return false;
+            alert("Exactly one line is selected \n" +
+            "Please be sure that two curves are selected");
+            return;
         }
 
         //Get lines' points
@@ -169,7 +176,59 @@ class model {
         var ref_obj = {p1: pt1, p2: pt2, p3: pt3, p4: pt4, pi: pi, t12: ti_12, t34: ti_34};
 
         var status = computeSegmentSegmentIntersection(ref_obj);
-        console.log(status);
+        var deleteLine1 = false;
+        var deleteLine2 = false;
+        var createdLine = false;
+        switch (status) {
+            case IntersectionType.DO_NOT_INTERSECT:
+                alert("Cannot peform instersection \n The two selected lines do not intersect")
+                break;
+            case IntersectionType.DO_INTERSECT:
+                var ln_a = new line(ref_obj.p1.x, ref_obj.p1.y, ref_obj.pi.x, ref_obj.pi.y);
+                var ln_b = new line(ref_obj.pi.x, ref_obj.pi.y, ref_obj.p2.x, ref_obj.p2.y);
+                var ln_c = new line(ref_obj.p3.x, ref_obj.p3.y, ref_obj.pi.x, ref_obj.pi.y);
+                var ln_d = new line(ref_obj.pi.x, ref_obj.pi.y, ref_obj.p4.x, ref_obj.p4.y);
+                deleteLine1 = true;
+                deleteLine2 = true;
+                createdLine = true;
+                break;
+            default:
+                break;
+        }
+
+        if (deleteLine1 && deleteLine2) {
+            this.delCurve(id_target12);
+            //this.delCurve(id_target34);
+            id_target34 = -1;
+            for(let i = 0; i < this.curves.length; i++)
+            {
+                if( this.curves[i].isSelected() )
+                {
+                    id_target34 = i;
+                }
+            }
+            if( id_target34 !== -1 ){
+                this.delCurve(id_target34);
+            }
+        }
+
+        if (ln_a != null) {
+            this.curves.push(ln_a);
+        }
+        if (ln_b != null) {
+            this.curves.push(ln_b);
+        }
+        if (ln_c != null) {
+            this.curves.push(ln_c);
+        }
+        if (ln_d != null) {
+            this.curves.push(ln_d);
+        }
+    }
+
+    delCurve(curve_id){
+        delete this.curves[curve_id];
+        this.curves.splice(curve_id, 1);
     }
 }
 

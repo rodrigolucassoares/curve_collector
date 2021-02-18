@@ -16,11 +16,11 @@ const ABSTOL = 1e-7;
 function area2d(p1,p2,p3){
     var A = {
         x: p2.x - p1.x,
-        y: p2.y - p1.x
+        y: p2.y - p1.y
     },
     B = {
         x: p3.x - p1.x,
-        y: p3.y - p1.x
+        y: p3.y - p1.y
     }
 
     //crossproduct
