@@ -6,6 +6,7 @@ import model from '../model/model'
 import {GLCanvas} from './GLCanvas'
 import {CurveTypes} from '../curves/CurveTypes'
 import { DoubleSide } from 'three'
+import Grid from './grid'
 
 
 class canvas {
@@ -33,6 +34,10 @@ class canvas {
         this.renderer.setSize(this.width, this.height);
         this.renderer.setClearColor(theme.color);
         this.canvas.append(this.renderer.domElement);
+        this.top = this.height/2;
+        this.bottom = - this.height/2;
+        this.left = -this.width/2;
+        this.right = this.width/2;
        
         //collector 
         this.collector = new collector();
@@ -40,7 +45,8 @@ class canvas {
         this.curMouseAction = null;
 
         this.gridOn = true;
-
+        this.gridObj = new Grid();
+        this.gridDisplay = null;
         this.planeObject = null;
 
         this.raycaster = new THREE.Raycaster();
@@ -57,7 +63,9 @@ class canvas {
 
         this.fence = null;
 
-        this.model = new model()
+        this.model = new model();
+        
+        this.displayCurves = new THREE.Mesh();
     }
 
     setCoordsToUniverse(x, y){
@@ -67,8 +75,6 @@ class canvas {
         const intersects = this.raycaster.intersectObject( this.planeObject );
         if ( intersects.length > 0 ) {
             const intersect = intersects[ 0 ];
-            //rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
-            //rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
             return {x: intersect.point.x, y: intersect.point.y};
         }
     }
@@ -111,6 +117,13 @@ class canvas {
                     if ((Math.abs(this.pt0.x - this.pt1.x) > this.mouseMoveTol) && 
                     (Math.abs(this.pt0.y - this.pt1.y) > this.mouseMoveTol)) {
                         if (this.collector.isCollecting()) {
+                            if (this.gridObj.getSnapInfo()) {
+                                var pos = {x: this.pt1.x, y: this.pt1.y};
+                                this.gridObj.snapTo(pos);
+                                this.pt1.x = pos.x;
+                                this.pt1.y = pos.y;
+                            }
+
                             if (this.model && !this.model.isEmpty()) {
                                 var pick_tol = this.width*this.pickTolFac;
                                 var pos = {x: this.pt1.x, y: this.pt1.y};
@@ -160,20 +173,23 @@ class canvas {
                             var ymin = (this.pt0.y < this.pt1.y) ? this.pt0.y : this.pt1.y;
                             var ymax = (this.pt0.y > this.pt1.y) ? this.pt0.y : this.pt1.y;
                             this.model.selectFence(xmin, xmax, ymin, ymax);
-                            
                         }
                     }
-                    this.scene.remove(this.fence);
                     this.render();
                 }
-                
-                //this.renderer.render(this.scene, this.camera);
                 break;
             case GLCanvas.COLLECTION:
                 if (this.mouseButton === 0) {
                     if ((Math.abs(this.pt0.x - this.pt1.x) < this.mouseMoveTol) && 
                     (Math.abs(this.pt0.y - this.pt1.y) < this.mouseMoveTol)) {
                         var tol = this.width*this.pickTolFac;
+
+                        if (this.gridObj.getSnapInfo()) {
+                            var pos = {x: this.pt1.x, y: this.pt1.y};
+                            this.gridObj.snapTo(pos);
+                            this.pt1.x = pos.x;
+                            this.pt1.y = pos.y;
+                        }
 
                         if (this.model && !this.model.isEmpty()) {
                             var pos = {x: this.pt1.x, y: this.pt1.y};
@@ -231,11 +247,6 @@ class canvas {
             return;
         }
 
-        while (this.scene.children.length !== 2) //excludes the gridHelper and the plan 
-        {
-            this.scene.remove(this.scene.children[2]);
-        }
-
         const pCurves = this.model.getCurves();
         for (let i = 0; i < pCurves.length; i++) {
             const pts = pCurves[i].getPointsToDraw();
@@ -260,6 +271,60 @@ class canvas {
             var points = new THREE.Points(pt_geometry, pt_material);
             curve.add(points);
             this.scene.add(curve);
+        }
+    }
+
+    makeDisplayGrid(){
+
+        var vector = new THREE.Vector3( 0, 0, 1 );
+        this.planeGeometry = new THREE.PlaneBufferGeometry(2*this.width, 2*this.height );
+        this.planeGeometry.lookAt(vector)
+        this.planeObject = new THREE.Mesh( this.planeGeometry, new THREE.MeshBasicMaterial( {color:0x000000, visible: false, side: DoubleSide } ) );
+        this.scene.add( this.planeObject );
+
+        if (this.gridOn) {
+            var oX = 0.0;
+            var oY = 0.0;
+            var x = this.left;
+            var y = this.bottom;
+            var gridSpace = {
+                x: 0.0,
+                y: 0.0
+            };
+            var vertices = [];
+            var line_vertices = [];
+
+            this.gridObj.getGridSpace(gridSpace);
+
+            x = oX - ( Math.trunc((oX - this.left)/gridSpace.x)*gridSpace.x) - gridSpace.x;
+
+            while (x <= this.right) {
+                y = oY -(Math.trunc((oY - this.bottom)/gridSpace.y)*gridSpace.y) - gridSpace.y;
+                while(y <= this.top){
+                    vertices.push(new THREE.Vector3(x, y, 0.0));
+                    y+=gridSpace.y;
+                }
+                x+=gridSpace.x;
+            }
+
+            line_vertices.push(new THREE.Vector3(oX - gridSpace.x, oY));
+            line_vertices.push(new THREE.Vector3(oX + gridSpace.x, oY));
+            line_vertices.push(new THREE.Vector3(oX, oY));
+            line_vertices.push(new THREE.Vector3(oX, oY - gridSpace.y));
+            line_vertices.push(new THREE.Vector3(oX, oY + gridSpace.y));
+
+            var pt_geometry = new THREE.BufferGeometry(),
+                pt_material = new THREE.PointsMaterial({color: 'gray', size: 1.0});
+            pt_geometry.setFromPoints(vertices);
+
+            var line_geometry = new THREE.BufferGeometry(),
+                line_material = new THREE.LineBasicMaterial({color: 'gray'});        
+            line_geometry.setFromPoints(line_vertices);
+            var lines = new THREE.Line(line_geometry, line_material);
+            this.gridDisplay = new THREE.Points(pt_geometry, pt_material);
+            this.gridDisplay.add(lines);
+
+            this.scene.add(this.gridDisplay);
         }
     }
 
@@ -333,7 +398,16 @@ class canvas {
     }
 
     render(){
+        this.scene.clear();
+        if (this.gridDisplay !== null && this.planeObject !== null) {
+            
+            this.gridDisplay.geometry.dispose();
+            this.planeObject.geometry.dispose();
+        }
+
+        this.makeDisplayGrid();
         this.makeDisplayModel();
+
         switch (this.curMouseAction) {
             case GLCanvas.SELECTION:
                 this.drawSelectionFence();
@@ -355,34 +429,11 @@ class canvas {
         this.renderer.setSize( this.width, this.height );
     }
 
-    grid(){
-        this.gridHelper = new THREE.GridHelper((this.width > this.height) ? this.width : this.height, 100);
-        this.gridHelper.position.z = -0.001;
-        this.gridHelper.geometry.rotateX( Math.PI / 2 );
-        var vector = new THREE.Vector3( 0, 0, 1 );
-        this.gridHelper.lookAt( vector );
-        this.scene.add(this.gridHelper);
-
-        this.planeGeometry = new THREE.PlaneBufferGeometry(2*this.width, 2*this.height, 100, 100 );
-        //this.planeGeometry.rotateX( -Math.PI / 2 );
-        this.planeGeometry.lookAt(vector)
-        this.plane = new THREE.Mesh( this.planeGeometry, new THREE.MeshBasicMaterial( {color:0x000000, visible: false, side: DoubleSide } ) );
-        //this.plane.geometry.rotateX(Math.PI/2);
-        //this.plane.lookAt(vector)
-        this.scene.add( this.plane );
-
-        this.planeObject = this.plane ;
-        
-        this.render();
-    }
-
     gridHelperOnOff(){
         if (this.gridOn === true) {
             this.gridOn = false;
-            this.gridHelper.visible = false;
         } else {
             this.gridOn = true;
-            this.gridHelper.visible = true;
         }
         this.render();
     }
