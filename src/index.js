@@ -15,9 +15,8 @@ ReactDOM.render(
 );
 
 const cnv = new canvas();
-cnv.grid();
-cnv.render();
 
+cnv.render();
 
 document.getElementById('canvas').style.cursor = "crosshair";
 
@@ -39,6 +38,9 @@ const guiOptions = {
   Grid: ()=>{
     cnv.gridHelperOnOff();
   },
+  SnapToGrid: ()=>{
+    cnv.gridObj.setSnapData(10.0, 10.0, true);
+  },
   Intersect: ()=>{
     cnv.model.intersectTwoCurves();
     cnv.render();
@@ -58,11 +60,13 @@ curvesFolder.add(guiOptions, 'quadbezier'); */
 
 curvesFolder.close();
 gui.add(guiOptions, 'Grid');
+gui.add(guiOptions, 'SnapToGrid');
 gui.add(guiOptions, 'Intersect');
 
 //curvesFolder.add(this.curveTypes, 'line');
 //curvesFolder.add(this.curveTypes, 'polyline');
 //curvesFolder.add(this.curveTypes, 'circle');
+
 window.addEventListener('resize', ()=>cnv.onWindowResize());
 
 document.getElementById('canvas').addEventListener( 'mousedown', (e)=>cnv.onButtonDown(e) );
