@@ -422,11 +422,23 @@ class canvas {
     }
     
     onWindowResize(){
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-		this.camera.updateProjectionMatrix();
+
         this.width = window.innerWidth;
         this.height = window.innerHeight;
+        this.left = -this.width/2;
+        this.right = this.width/2;
+        this.top = this.height/2;
+        this.bottom = - this.height/2;
+        this.camera.left = this.left;
+        this.camera.right = this.right;
+        this.camera.top = this.top;
+        this.camera.bottom = this.bottom;
+
+        this.camera.aspect = this.width / this.height;
+		this.camera.updateProjectionMatrix();
+        
         this.renderer.setSize( this.width, this.height );
+        this.render();
     }
 
     gridHelperOnOff(){
