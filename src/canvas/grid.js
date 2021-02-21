@@ -1,8 +1,8 @@
 export default class Grid {
     constructor(){
         this.is_snapOn = false;
-        this.gridX = 10.0;
-        this.gridY = 10.0;
+        this.gridX = 1.0;
+        this.gridY = 1.0;
     }
 
     reset(){
