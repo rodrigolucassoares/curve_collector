@@ -5,7 +5,7 @@ import curve from '../curves/curve'
 import model from '../model/model'
 import {GLCanvas} from './GLCanvas'
 import {CurveTypes} from '../curves/CurveTypes'
-import { DoubleSide } from 'three'
+import { DoubleSide, SrcAlphaSaturateFactor } from 'three'
 import Grid from './grid'
 
 
@@ -19,8 +19,12 @@ class canvas {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color( 0xffffff );
         //create camera
-        this.camera = new THREE.OrthographicCamera(-this.width/2, this.width/2,
-            this.height/2, - this.height/2,1,1000);
+        this.top = (this.height/2)/10;
+        this.bottom = - (this.height/2)/10;
+        this.left = -(this.width/2)/10;
+        this.right = (this.width/2)/10;
+        this.camera = new THREE.OrthographicCamera(this.left, this.right,
+            this.top, this.bottom,1,1000);
         this.camera.position.set( 0, 0, 1 );
         this.camera.lookAt(0,0,0);
         //gui
@@ -34,10 +38,6 @@ class canvas {
         this.renderer.setSize(this.width, this.height);
         this.renderer.setClearColor(theme.color);
         this.canvas.append(this.renderer.domElement);
-        this.top = this.height/2;
-        this.bottom = - this.height/2;
-        this.left = -this.width/2;
-        this.right = this.width/2;
        
         //collector 
         this.collector = new collector();
@@ -56,7 +56,7 @@ class canvas {
         this.pt1 = null;
 
         this.mouseButton = null;
-        this.mouseMoveTol = 2;
+        this.mouseMoveTol = 0.1;
         this.pickTolFac = 0.01;
 
         this.curves = [];
@@ -125,7 +125,9 @@ class canvas {
                             }
 
                             if (this.model && !this.model.isEmpty()) {
-                                var pick_tol = this.width*this.pickTolFac;
+                                var max_size = ((this.right-this.left) >= (this.top - this.bottom) ? (this.right-this.left) :
+                                (this.top - this.bottom));
+                                var pick_tol = max_size*this.pickTolFac;
                                 var pos = {x: this.pt1.x, y: this.pt1.y};
                                 this.model.snapToCurve(pos, pick_tol);
                                 this.pt1.x = pos.x;
@@ -141,10 +143,8 @@ class canvas {
                 if (this.mouseButton === 0 && this.buttonPressed) {
                     if ((Math.abs(this.pt0.x - this.pt1.x) > this.mouseMoveTol) && 
                     (Math.abs(this.pt0.y - this.pt1.y) > this.mouseMoveTol)) {
-                        var camPos = this.camera.position;
                         var dPos = new THREE.Vector3(this.pt0.x - this.pt1.x, this.pt0.y - this.pt1.y,0);
-                        camPos.add(dPos);
-                        this.camera.position.set(camPos.x,camPos.y,1);
+                        this.panWorldWindow(dPos.x, dPos.y);
                         this.render();
                     }
                 }
@@ -182,7 +182,9 @@ class canvas {
                 if (this.mouseButton === 0) {
                     if ((Math.abs(this.pt0.x - this.pt1.x) < this.mouseMoveTol) && 
                     (Math.abs(this.pt0.y - this.pt1.y) < this.mouseMoveTol)) {
-                        var tol = this.width*this.pickTolFac;
+                        var max_size = ((this.right-this.left) >= (this.top - this.bottom) ? (this.right-this.left) :
+                        (this.top - this.bottom));
+                        var tol = max_size*this.pickTolFac;
 
                         if (this.gridObj.getSnapInfo()) {
                             var pos = {x: this.pt1.x, y: this.pt1.y};
@@ -240,6 +242,65 @@ class canvas {
             default:
                 break;
         }
+    }
+
+    panWorldWindow(panX, panY){
+        var deslocX = -panX //-(this.right-this.left);
+        var deslocY = -panY //-(this.top -this.bottom);
+        
+        this.right = this.right - deslocX;
+        this.left = this.left - deslocX;
+
+        this.top = this.top - deslocY;
+        this.bottom = this.bottom - deslocY;
+
+        this.camera.left = this.left;
+        this.camera.right = this.right;
+        this.camera.top = this.top;
+        this.camera.bottom = this.bottom;
+        this.camera.updateProjectionMatrix();
+        this.render();
+    }
+
+    zoomIn(){
+        this.scaleWorldWindow(1/1.1);
+        this.render();
+    }
+
+    zoomOut(){
+        this.scaleWorldWindow(1.1);
+        this.render();
+    }
+
+    scaleWorldWindow(scaleFac){
+        var vpr, cx, cy, sizex, sizey;
+
+        vpr = this.height/this.width;
+
+        cx = (this.left + this.right)/2;
+        cy = (this.top + this.bottom)/2;
+
+        sizex = (this.right - this.left)*scaleFac;
+        sizey = (this.top - this.bottom)*scaleFac;
+
+        if (sizey / sizex > vpr){
+            sizex = sizey / vpr;
+        }
+        else if (sizey / sizex < vpr)
+        {
+            sizey = sizex*vpr;
+        }
+
+        this.right = cx + sizex/2;
+        this.left = cx - sizex/2;
+        this.top = cy + sizey/2;
+        this.bottom = cy - sizey/2;
+
+        this.camera.left = this.left;
+        this.camera.right = this.right;
+        this.camera.top = this.top;
+        this.camera.bottom = this.bottom;
+        this.camera.updateProjectionMatrix();
     }
 
     makeDisplayModel(){

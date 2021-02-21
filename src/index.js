@@ -39,7 +39,13 @@ const guiOptions = {
     cnv.gridHelperOnOff();
   },
   SnapToGrid: ()=>{
-    cnv.gridObj.getSnapInfo() ? cnv.gridObj.setSnapData(10.0, 10.0, false) : cnv.gridObj.setSnapData(10.0, 10.0, true);
+    cnv.gridObj.getSnapInfo() ? cnv.gridObj.setSnapData(1.0, 1.0, false) : cnv.gridObj.setSnapData(1.0, 1.0, true);
+  },
+  ZoomIn: ()=>{
+    cnv.zoomIn();
+  },
+  ZoomOut: ()=>{
+    cnv.zoomOut();
   },
   Intersect: ()=>{
     cnv.model.intersectTwoCurves();
@@ -61,6 +67,8 @@ curvesFolder.add(guiOptions, 'quadbezier'); */
 curvesFolder.close();
 gui.add(guiOptions, 'Grid');
 gui.add(guiOptions, 'SnapToGrid');
+gui.add(guiOptions, 'ZoomIn');
+gui.add(guiOptions, 'ZoomOut');
 gui.add(guiOptions, 'Intersect');
 
 //curvesFolder.add(this.curveTypes, 'line');
