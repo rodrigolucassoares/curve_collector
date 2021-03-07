@@ -7,12 +7,15 @@ import canvas from './canvas/canvas'
 import { GLCanvas } from './canvas/GLCanvas';
 import { CurveTypes } from './curves/CurveTypes';
 
+
 ReactDOM.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
   document.getElementById('root')
 );
+
+
 
 const cnv = new canvas();
 
@@ -80,3 +83,5 @@ window.addEventListener('resize', ()=>cnv.onWindowResize());
 document.getElementById('canvas').addEventListener( 'mousedown', (e)=>cnv.onButtonDown(e) );
 document.getElementById('canvas').addEventListener( 'mousemove', (e)=>cnv.onMouseMove(e) );
 document.getElementById('canvas').addEventListener( 'mouseup', (e)=>cnv.onButtonUp(e) );
+
+cnv.socketListeners();

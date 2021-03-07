@@ -2,11 +2,13 @@ import * as THREE from 'three'
 import * as dat from 'dat.gui'
 import collector from '../curves/curveCollector'
 import curve from '../curves/curve'
+import Line from '../curves/line'
 import model from '../model/model'
 import {GLCanvas} from './GLCanvas'
 import {CurveTypes} from '../curves/CurveTypes'
 import { DoubleSide, SrcAlphaSaturateFactor } from 'three'
 import Grid from './grid'
+import {io} from 'socket.io-client'
 
 
 class canvas {
@@ -19,10 +21,10 @@ class canvas {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color( 0xffffff );
         //create camera
-        this.top = (this.height/2)/10;
-        this.bottom = - (this.height/2)/10;
-        this.left = -(this.width/2)/10;
-        this.right = (this.width/2)/10;
+        this.top = (this.height/2)/20;
+        this.bottom = - (this.height/2)/20;
+        this.left = -(this.width/2)/20;
+        this.right = (this.width/2)/20;
         this.camera = new THREE.OrthographicCamera(this.left, this.right,
             this.top, this.bottom,1,1000);
         this.camera.position.set( 0, 0, 1 );
@@ -66,6 +68,29 @@ class canvas {
         this.model = new model();
         
         this.displayCurves = new THREE.Mesh();
+
+        //socket object
+        this.socket = io("http://localhost:8080");
+    }
+
+    socketListeners(){
+        //socket listeners
+
+        this.socket.on("connect", () => {
+            alert("Connected");
+        });
+
+        this.socket.on("curve", (curve) => {
+            let line = new Line(curve.x1, curve.y1, curve.x2, curve.y2);
+            this.curves.push(line);
+            this.model.insertCurve(line);
+            console.log(this.curves);
+            this.render();
+        });
+        
+        this.socket.on("disconnect", (reason) => {
+            alert(`disconnected, reason: ${reason}`);
+        });
     }
 
     setCoordsToUniverse(x, y){
@@ -236,6 +261,7 @@ class canvas {
                     this.model.insertCurve(curve);
                     this.collector.endCurveCollection();
                     this.render();
+                    this.socket.emit('curve', curve);
                 }
                 break;
         
@@ -338,7 +364,7 @@ class canvas {
     makeDisplayGrid(){
 
         var vector = new THREE.Vector3( 0, 0, 1 );
-        this.planeGeometry = new THREE.PlaneBufferGeometry(2*this.width, 2*this.height );
+        this.planeGeometry = new THREE.PlaneBufferGeometry(10*this.width, 10*this.height );
         this.planeGeometry.lookAt(vector)
         this.planeObject = new THREE.Mesh( this.planeGeometry, new THREE.MeshBasicMaterial( {color:0x000000, visible: false, side: DoubleSide } ) );
         this.scene.add( this.planeObject );
@@ -486,16 +512,16 @@ class canvas {
 
         this.width = window.innerWidth;
         this.height = window.innerHeight;
-        this.left = -this.width/2;
-        this.right = this.width/2;
-        this.top = this.height/2;
-        this.bottom = - this.height/2;
+        this.left = -(this.width/2)/20;
+        this.right = (this.width/2)/20;
+        this.top = (this.height/2)/20;
+        this.bottom = - (this.height/2)/20;
         this.camera.left = this.left;
         this.camera.right = this.right;
         this.camera.top = this.top;
         this.camera.bottom = this.bottom;
 
-        this.camera.aspect = this.width / this.height;
+        //this.camera.aspect = this.width / this.height;
 		this.camera.updateProjectionMatrix();
         
         this.renderer.setSize( this.width, this.height );
