@@ -15,8 +15,6 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-
-
 const cnv = new canvas();
 
 cnv.render();
@@ -38,6 +36,10 @@ const guiOptions = {
     cnv.setMouseAction(GLCanvas.COLLECTION);
     cnv.setCurveType(CurveTypes.LINE);
   },
+  CreateRoom: ()=>{
+    cnv.socket.emit('create-room');
+  },
+  JoinRoom: "Join to a room",
   Grid: ()=>{
     cnv.gridHelperOnOff();
   },
@@ -68,6 +70,12 @@ curvesFolder.add(guiOptions, 'cubicbezier');
 curvesFolder.add(guiOptions, 'quadbezier'); */
 
 curvesFolder.close();
+const serverFolder = gui.addFolder('Server');
+serverFolder.add(guiOptions, 'CreateRoom');
+serverFolder.add(guiOptions, 'JoinRoom').onFinishChange((value)=>{
+  cnv.socket.emit('join-room', value);
+})
+serverFolder.close();
 gui.add(guiOptions, 'Grid');
 gui.add(guiOptions, 'SnapToGrid');
 gui.add(guiOptions, 'ZoomIn');

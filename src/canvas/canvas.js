@@ -9,6 +9,7 @@ import {CurveTypes} from '../curves/CurveTypes'
 import { DoubleSide, SrcAlphaSaturateFactor } from 'three'
 import Grid from './grid'
 import {io} from 'socket.io-client'
+import line from '../curves/line'
 
 
 class canvas {
@@ -80,17 +81,40 @@ class canvas {
             alert("Connected");
         });
 
-        this.socket.on("curve", (curve) => {
-            let line = new Line(curve.x1, curve.y1, curve.x2, curve.y2);
-            this.curves.push(line);
-            this.model.insertCurve(line);
-            console.log(this.curves);
+        this.socket.on("insert-curve", (curve) => {
+            var line = new Line(curve.x1, curve.y1, curve.x2, curve.y2);
+            line.selected = curve.selected;
+            this.model.curves.push(line);
             this.render();
         });
         
+        this.socket.on('room-created', (token)=>{
+            alert(`Share this room token with others: ${token}`);
+        });
+
+        this.socket.on('room-joined', (token)=>{
+            alert(`Joined to room: ${token}`);
+        });
+
+        this.socket.on('user-joined', (token)=>{
+            alert(`The user ${token} joined to your room`);
+        });
+        
+        this.socket.on("user-disconnected", (id) => {
+            alert(`The user: ${id} disconnected from your room`);
+        });
+
+        this.socket.on('room-disconnected', ()=>{
+            alert('The room has been disconnect');
+        })
+
         this.socket.on("disconnect", (reason) => {
             alert(`disconnected, reason: ${reason}`);
         });
+
+        this.socket.on('error', (e)=>{
+            alert(`ERROR: ${e}`);
+        })
     }
 
     setCoordsToUniverse(x, y){
@@ -261,7 +285,7 @@ class canvas {
                     this.model.insertCurve(curve);
                     this.collector.endCurveCollection();
                     this.render();
-                    this.socket.emit('curve', curve);
+                    this.socket.emit('insert-curve', curve);
                 }
                 break;
         
