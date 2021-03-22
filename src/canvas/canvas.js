@@ -72,7 +72,7 @@ class canvas {
         this.displayCurves = new THREE.Mesh();
 
         //socket object
-        this.socket = io("http://localhost:8080");
+        this.socket = io("https://curve-colector-api.herokuapp.com/");
     }
 
     socketListeners(){
