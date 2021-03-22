@@ -40,6 +40,9 @@ const guiOptions = {
     cnv.socket.emit('create-room');
   },
   JoinRoom: "Join to a room",
+  SaveFile: ()=>{
+    cnv.socket.emit('save-file');
+  },
   Grid: ()=>{
     cnv.gridHelperOnOff();
   },
@@ -54,6 +57,7 @@ const guiOptions = {
   },
   Intersect: ()=>{
     cnv.model.intersectTwoCurves();
+    cnv.socket.emit('intersect');
     cnv.render();
   }
 }
@@ -75,6 +79,7 @@ serverFolder.add(guiOptions, 'CreateRoom');
 serverFolder.add(guiOptions, 'JoinRoom').onFinishChange((value)=>{
   cnv.socket.emit('join-room', value);
 })
+serverFolder.add(guiOptions, 'SaveFile');
 serverFolder.close();
 gui.add(guiOptions, 'Grid');
 gui.add(guiOptions, 'SnapToGrid');

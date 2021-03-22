@@ -10,6 +10,7 @@ import { DoubleSide, SrcAlphaSaturateFactor } from 'three'
 import Grid from './grid'
 import {io} from 'socket.io-client'
 import line from '../curves/line'
+import dl from 'delivery'
 
 
 class canvas {
@@ -79,7 +80,19 @@ class canvas {
 
         this.socket.on("connect", () => {
             alert("Connected");
+/* 
+            var delivery = new dl(this.socket);
+ 
+            delivery.on('receive.start',function(fileUID){
+                console.log('receiving a file!');
+            });
+        
+            delivery.on('receive.success',function(file){
+                console.log('file received');
+            }); */
         });
+
+        
 
         this.socket.on("insert-curve", (curve) => {
             var line = new Line(curve.x1, curve.y1, curve.x2, curve.y2);
@@ -96,9 +109,22 @@ class canvas {
             alert(`Joined to room: ${token}`);
         });
 
+        this.socket.on('update-model', (server_model)=>{
+            this.model.curves = [];
+            server_model.curves.forEach(curve => {
+                var line = new Line(curve.x1, curve.y1, curve.x2, curve.y2);
+                this.model.curves.push(line);
+            });
+            this.render();
+        })
+
         this.socket.on('user-joined', (token)=>{
             alert(`The user ${token} joined to your room`);
         });
+
+        this.socket.on('file-saved', ()=>{
+            alert('File has been saved');
+        })
         
         this.socket.on("user-disconnected", (id) => {
             alert(`The user: ${id} disconnected from your room`);
@@ -221,6 +247,7 @@ class canvas {
                             var xmax = (this.pt0.x > this.pt1.x) ? this.pt0.x : this.pt1.x;
                             var ymin = (this.pt0.y < this.pt1.y) ? this.pt0.y : this.pt1.y;
                             var ymax = (this.pt0.y > this.pt1.y) ? this.pt0.y : this.pt1.y;
+                            this.socket.emit('select-fence', xmin, xmax, ymin, ymax);
                             this.model.selectFence(xmin, xmax, ymin, ymax);
                         }
                     }
