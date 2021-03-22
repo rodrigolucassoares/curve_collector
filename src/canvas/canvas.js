@@ -2,11 +2,15 @@ import * as THREE from 'three'
 import * as dat from 'dat.gui'
 import collector from '../curves/curveCollector'
 import curve from '../curves/curve'
+import Line from '../curves/line'
 import model from '../model/model'
 import {GLCanvas} from './GLCanvas'
 import {CurveTypes} from '../curves/CurveTypes'
 import { DoubleSide, SrcAlphaSaturateFactor } from 'three'
 import Grid from './grid'
+import {io} from 'socket.io-client'
+import line from '../curves/line'
+import dl from 'delivery'
 
 
 class canvas {
@@ -19,10 +23,10 @@ class canvas {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color( 0xffffff );
         //create camera
-        this.top = (this.height/2)/10;
-        this.bottom = - (this.height/2)/10;
-        this.left = -(this.width/2)/10;
-        this.right = (this.width/2)/10;
+        this.top = (this.height/2)/20;
+        this.bottom = - (this.height/2)/20;
+        this.left = -(this.width/2)/20;
+        this.right = (this.width/2)/20;
         this.camera = new THREE.OrthographicCamera(this.left, this.right,
             this.top, this.bottom,1,1000);
         this.camera.position.set( 0, 0, 1 );
@@ -66,6 +70,77 @@ class canvas {
         this.model = new model();
         
         this.displayCurves = new THREE.Mesh();
+
+        //socket object
+        this.socket = io("https://curve-colector-api.herokuapp.com/");
+    }
+
+    socketListeners(){
+        //socket listeners
+
+        this.socket.on("connect", () => {
+            alert("Connected");
+/* 
+            var delivery = new dl(this.socket);
+ 
+            delivery.on('receive.start',function(fileUID){
+                console.log('receiving a file!');
+            });
+        
+            delivery.on('receive.success',function(file){
+                console.log('file received');
+            }); */
+        });
+
+        
+
+        this.socket.on("insert-curve", (curve) => {
+            var line = new Line(curve.x1, curve.y1, curve.x2, curve.y2);
+            line.selected = curve.selected;
+            this.model.curves.push(line);
+            this.render();
+        });
+        
+        this.socket.on('room-created', (token)=>{
+            alert(`Share this room token with others: ${token}`);
+        });
+
+        this.socket.on('room-joined', (token)=>{
+            alert(`Joined to room: ${token}`);
+        });
+
+        this.socket.on('update-model', (server_model)=>{
+            this.model.curves = [];
+            server_model.curves.forEach(curve => {
+                var line = new Line(curve.x1, curve.y1, curve.x2, curve.y2);
+                this.model.curves.push(line);
+            });
+            this.render();
+        })
+
+        this.socket.on('user-joined', (token)=>{
+            alert(`The user ${token} joined to your room`);
+        });
+
+        this.socket.on('file-saved', ()=>{
+            alert('File has been saved');
+        })
+        
+        this.socket.on("user-disconnected", (id) => {
+            alert(`The user: ${id} disconnected from your room`);
+        });
+
+        this.socket.on('room-disconnected', ()=>{
+            alert('The room has been disconnect');
+        })
+
+        this.socket.on("disconnect", (reason) => {
+            alert(`disconnected, reason: ${reason}`);
+        });
+
+        this.socket.on('error', (e)=>{
+            alert(`ERROR: ${e}`);
+        })
     }
 
     setCoordsToUniverse(x, y){
@@ -172,6 +247,7 @@ class canvas {
                             var xmax = (this.pt0.x > this.pt1.x) ? this.pt0.x : this.pt1.x;
                             var ymin = (this.pt0.y < this.pt1.y) ? this.pt0.y : this.pt1.y;
                             var ymax = (this.pt0.y > this.pt1.y) ? this.pt0.y : this.pt1.y;
+                            this.socket.emit('select-fence', xmin, xmax, ymin, ymax);
                             this.model.selectFence(xmin, xmax, ymin, ymax);
                         }
                     }
@@ -236,6 +312,7 @@ class canvas {
                     this.model.insertCurve(curve);
                     this.collector.endCurveCollection();
                     this.render();
+                    this.socket.emit('insert-curve', curve);
                 }
                 break;
         
@@ -338,7 +415,7 @@ class canvas {
     makeDisplayGrid(){
 
         var vector = new THREE.Vector3( 0, 0, 1 );
-        this.planeGeometry = new THREE.PlaneBufferGeometry(2*this.width, 2*this.height );
+        this.planeGeometry = new THREE.PlaneBufferGeometry(10*this.width, 10*this.height );
         this.planeGeometry.lookAt(vector)
         this.planeObject = new THREE.Mesh( this.planeGeometry, new THREE.MeshBasicMaterial( {color:0x000000, visible: false, side: DoubleSide } ) );
         this.scene.add( this.planeObject );
@@ -486,16 +563,16 @@ class canvas {
 
         this.width = window.innerWidth;
         this.height = window.innerHeight;
-        this.left = -this.width/2;
-        this.right = this.width/2;
-        this.top = this.height/2;
-        this.bottom = - this.height/2;
+        this.left = -(this.width/2)/20;
+        this.right = (this.width/2)/20;
+        this.top = (this.height/2)/20;
+        this.bottom = - (this.height/2)/20;
         this.camera.left = this.left;
         this.camera.right = this.right;
         this.camera.top = this.top;
         this.camera.bottom = this.bottom;
 
-        this.camera.aspect = this.width / this.height;
+        //this.camera.aspect = this.width / this.height;
 		this.camera.updateProjectionMatrix();
         
         this.renderer.setSize( this.width, this.height );

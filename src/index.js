@@ -7,6 +7,7 @@ import canvas from './canvas/canvas'
 import { GLCanvas } from './canvas/GLCanvas';
 import { CurveTypes } from './curves/CurveTypes';
 
+
 ReactDOM.render(
   <React.StrictMode>
     <App />
@@ -35,6 +36,13 @@ const guiOptions = {
     cnv.setMouseAction(GLCanvas.COLLECTION);
     cnv.setCurveType(CurveTypes.LINE);
   },
+  CreateRoom: ()=>{
+    cnv.socket.emit('create-room');
+  },
+  JoinRoom: "Join to a room",
+  SaveFile: ()=>{
+    cnv.socket.emit('save-file');
+  },
   Grid: ()=>{
     cnv.gridHelperOnOff();
   },
@@ -49,6 +57,7 @@ const guiOptions = {
   },
   Intersect: ()=>{
     cnv.model.intersectTwoCurves();
+    cnv.socket.emit('intersect');
     cnv.render();
   }
 }
@@ -65,6 +74,13 @@ curvesFolder.add(guiOptions, 'cubicbezier');
 curvesFolder.add(guiOptions, 'quadbezier'); */
 
 curvesFolder.close();
+const serverFolder = gui.addFolder('Server');
+serverFolder.add(guiOptions, 'CreateRoom');
+serverFolder.add(guiOptions, 'JoinRoom').onFinishChange((value)=>{
+  cnv.socket.emit('join-room', value);
+})
+serverFolder.add(guiOptions, 'SaveFile');
+serverFolder.close();
 gui.add(guiOptions, 'Grid');
 gui.add(guiOptions, 'SnapToGrid');
 gui.add(guiOptions, 'ZoomIn');
@@ -80,3 +96,5 @@ window.addEventListener('resize', ()=>cnv.onWindowResize());
 document.getElementById('canvas').addEventListener( 'mousedown', (e)=>cnv.onButtonDown(e) );
 document.getElementById('canvas').addEventListener( 'mousemove', (e)=>cnv.onMouseMove(e) );
 document.getElementById('canvas').addEventListener( 'mouseup', (e)=>cnv.onButtonUp(e) );
+
+cnv.socketListeners();
